@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plaforms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    redirecturls="" >
+
+    <platform
+        id="qq"
+        accesstokenurl="https://graph.qq.com/oauth2.0/token"
+        appid=""
+        appkey=""
+        authorizeurl="https://graph.qq.com/oauth2.0/authorize"
+        scope="get_simple_userinfo,add_topic,add_t,add_pic_t,upload_pic,add_share"
+        showpriority="1" />
+
+    <platform
+        id="qzone"
+        accesstokenurl="https://graph.qq.com/oauth2.0/token"
+        appid=""
+        appkey=""
+        authorizeurl="https://graph.qq.com/oauth2.0/authorize"
+        redirecturl=""
+        scope="get_simple_userinfo,add_topic,add_t,add_pic_t,upload_pic,add_share"
+        showpriority="2" />
+
+    <platform
+        id="wechatmoments"
+        accesstokenurl="https://api.weixin.qq.com/sns/oauth2/access_token"
+        appid=""
+        appkey=""
+        scope="snsapi_userinfo"
+        showpriority="3" />
+
+    <platform
+        id="wechat"
+        accesstokenurl="https://api.weixin.qq.com/sns/oauth2/access_token"
+        appid=""
+        appkey=""
+        scope="snsapi_userinfo"
+        showpriority="4" />
+
+    <platform
+        id="sinaweibo"
+        accesstokenurl="https://api.weibo.com/oauth2/access_token"
+        appkey=""
+        appsecret=""
+        authorizeurl="https://open.weibo.cn/oauth2/authorize"
+        scope="all"
+        showpriority="5" />
+
+    <platform
+        id="tecentweibo"
+        accesstokenurl="https://open.t.qq.com/cgi-bin/oauth2/access_token"
+        appkey=""
+        appsecret=""
+        authorizeurl="https://open.t.qq.com/cgi-bin/oauth2/authorize"
+        showpriority="6" />
+
+    <platform
+        id="renren"
+        accesstokenurl="https://graph.renren.com/oauth/token"
+        appid=""
+        appkey=""
+        appsecret=""
+        authorizeurl="https://graph.renren.com/oauth/authorize"
+        scope="publish_share photo_upload publish_feed"
+        showpriority="7" />
+
+    <platform
+        id="douban"
+        accesstokenurl="https://www.douban.com/service/auth2/token"
+        appkey=""
+        appsecret=""
+        authorizeurl="https://www.douban.com/service/auth2/auth"
+        scope="shuo_basic_r,shuo_basic_w,douban_basic_common"
+        showpriority="8" />
+
+</plaforms>
