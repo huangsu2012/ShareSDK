@@ -57,7 +57,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="org.huangsu.sharesdk.sample.ui.wxapi.WXEntryActivity"
+            android:name=".wxapi.WXEntryActivity"
             android:exported="true"
             android:launchMode="standard"
             android:theme="@android:style/Theme.Dialog" />
