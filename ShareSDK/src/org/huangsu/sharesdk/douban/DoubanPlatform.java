@@ -137,7 +137,7 @@ public class DoubanPlatform extends Platform {
 				return;
 			}
 		}
-		reoauth(activity, transaction);
+		oauth(activity, transaction);
 	}
 
 	@Override

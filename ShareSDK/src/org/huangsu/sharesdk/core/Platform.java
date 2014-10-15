@@ -428,7 +428,7 @@ public abstract class Platform implements PlatformConstants {
 
 	protected AccessToken getAccessToken(String platformid) {
 		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + platformid, Activity.MODE_PRIVATE);
+				sharedPrefPrefix + platformid, Context.MODE_PRIVATE);
 		if (preferences != null) {
 			String token = preferences.getString(TOKEN, null);
 			String uid = preferences.getString(UID, null);
