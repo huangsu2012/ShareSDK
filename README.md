@@ -14,5 +14,5 @@ redirecturl,redirecturls: String field,redirecturl has higher priority,it's the 
 authorizeurl: String field,the url of getting the oauth code;<br><br>
 accesstokenurl: String field,the url of getting the access token;<br><br>
 scope: String field,it determines the accessibility of open api;<br><br>
-showpriority: the importance of a platform<br><br>
+showpriority:int field,the importance of a platform<br><br>
 (5) Config "project/AndroidManifest.xml",you can find the detail configuration in "ShareSDKSample/AndroidManifest.xml".
