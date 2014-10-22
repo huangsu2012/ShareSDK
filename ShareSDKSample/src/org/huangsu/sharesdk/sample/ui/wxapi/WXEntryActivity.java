@@ -17,8 +17,8 @@ public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		wechatBase = (WechatBase) PlatformFactory.getInstance(this).getPlatform(
-				PlatformConstants.WECHAT);
+		wechatBase = (WechatBase) PlatformFactory.getInstance(this)
+				.getPlatform(PlatformConstants.WECHAT);
 		wechatBase.handleIntent(getIntent(), this);
 	}
 

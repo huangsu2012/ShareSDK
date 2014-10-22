@@ -177,7 +177,7 @@ public class MainActivity extends ActionBarActivity {
 				}
 				platform = PlatformFactory.getInstance(getActivity())
 						.getPlatform(platformid);
-				LogUtil.d("platformid:%s,login:%s", platformid,login);
+				LogUtil.d("platformid:%s,login:%s", platformid, login);
 				if (platform != null) {
 					final String platformName = getString(platform.getInfo().nameId);
 					if (login) {
