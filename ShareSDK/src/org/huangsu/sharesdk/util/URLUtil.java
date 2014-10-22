@@ -26,24 +26,28 @@ public class URLUtil {
 	 */
 	public static String constructUrl(String baseUrl,
 			Map<String, String> params, String charsetName) {
-		StringBuilder url = new StringBuilder();
-		url.append(baseUrl + "?");
-		Iterator<String> iterator = params.keySet().iterator();
-		while (iterator.hasNext()) {
-			String key = iterator.next();
-			if (StringUtil.isEmpty(charsetName)) {
-				url.append(key + "=" + params.get(key));
-			} else {
-				try {
-					url.append(key + "="
-							+ URLEncoder.encode(params.get(key), charsetName));
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
+		StringBuilder url = new StringBuilder(baseUrl);
+		if (params != null && !params.isEmpty()) {
+			url.append("?");
+			Iterator<String> iterator = params.keySet().iterator();
+			while (iterator.hasNext()) {
+				String key = iterator.next();
+				if (StringUtil.isEmpty(charsetName)) {
+					url.append(key + "=" + params.get(key));
+				} else {
+					try {
+						url.append(key
+								+ "="
+								+ URLEncoder.encode(params.get(key),
+										charsetName));
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
 				}
+				url.append("&");
 			}
-			url.append("&");
+			url.delete(url.lastIndexOf("&"), url.length());
 		}
-		url.delete(url.lastIndexOf("&"), url.length());
 		return url.toString();
 	}
 }

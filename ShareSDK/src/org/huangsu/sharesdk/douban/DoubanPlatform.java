@@ -11,14 +11,14 @@ import org.huangsu.sharesdk.R;
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.BasicUserInfo;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.JsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
-import org.huangsu.sharesdk.util.URLUtil;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -26,8 +26,8 @@ import android.text.TextUtils;
 import com.google.gson.JsonObject;
 
 public class DoubanPlatform extends Platform {
-	protected DoubanPlatform(Context context, NetworkClient client) {
-		super(context, client);
+	protected DoubanPlatform(Context context, NetworkClient client,DataManager dataManager) {
+		super(context, client,dataManager);
 	}
 
 	private Map<String, String> headers;
@@ -43,7 +43,7 @@ public class DoubanPlatform extends Platform {
 	}
 
 	@Override
-	protected boolean shouldOauthBeforeShare() {
+	public boolean shouldOauthBeforeShare() {
 		return true;
 	}
 
@@ -115,8 +115,7 @@ public class DoubanPlatform extends Platform {
 				map.put("redirect_uri", info.redirecturl);
 				map.put("grant_type", "refresh_token");
 				map.put("refresh_token", accessToken.refreshToken);
-				url = URLUtil.constructUrl(url, map);
-				client.get(url, new ResponseListener() {
+				client.get(url, null, map, new ResponseListener() {
 
 					@Override
 					public void onSuccess(JsonObject result) {
@@ -194,7 +193,7 @@ public class DoubanPlatform extends Platform {
 
 	}
 
-	private void getHeaders(String accessToken) {
+	public Map<String,String> getHeaders(String accessToken) {
 		if (headers == null) {
 			headers = new HashMap<String, String>();
 			headers.put("Accept",
@@ -203,6 +202,7 @@ public class DoubanPlatform extends Platform {
 			headers.put("Connection", "keep-alive");
 		}
 		headers.put("Authorization", "Bearer " + accessToken);
+		return headers;
 	}
 
 	@Override
@@ -221,7 +221,7 @@ public class DoubanPlatform extends Platform {
 		String url = DoubanConstants.BASEUSERINFO + ":" + uid;
 		String token = accessToken.token;
 		getHeaders(token);
-		client.get(url, headers, listener);
+		client.get(url, headers,null, listener);
 	}
 
 	@Override

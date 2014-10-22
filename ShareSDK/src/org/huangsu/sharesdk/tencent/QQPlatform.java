@@ -7,14 +7,13 @@ import org.huangsu.sharesdk.R;
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.BasicUserInfo;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.JsonUtil;
-import org.huangsu.sharesdk.util.URLUtil;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -28,8 +27,8 @@ import com.tencent.tauth.UiError;
 
 public class QQPlatform extends TencentBase {
 
-	protected QQPlatform(Context context, NetworkClient client) {
-		super(context, client);
+	protected QQPlatform(Context context, NetworkClient client,DataManager dataManager) {
+		super(context, client,dataManager);
 	}
 
 	@Override
@@ -45,29 +44,6 @@ public class QQPlatform extends TencentBase {
 	@Override
 	protected void initInfo() {
 		initInfo(QQ);
-	}
-
-	@Override
-	protected boolean isOauth() {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + QQ, Context.MODE_PRIVATE);
-		if (preferences != null
-				&& !TextUtils.isEmpty(preferences.getString(TOKEN, null))) {
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	protected boolean isExpired() {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + QQ, Context.MODE_PRIVATE);
-		if (preferences != null
-				&& preferences.getLong(EXPIREDIN, 0) > System
-						.currentTimeMillis()) {
-			return false;
-		}
-		return true;
 	}
 
 	@Override
@@ -158,22 +134,15 @@ public class QQPlatform extends TencentBase {
 	}
 
 	@Override
-	protected AccessToken getAccessToken() {
+	public AccessToken getAccessToken() {
 		return getAccessToken(QQ);
-	}
-
-	@Override
-	protected void saveAccessToken(String platformid, String accessToken,
-			String uid, long expiresIn, String refreshToken) {
-		super.saveAccessToken(QQ, accessToken, uid, expiresIn, refreshToken);
 	}
 
 	@Override
 	protected void doGetUserInfo(AccessToken accessToken, String uid,
 			ResponseListener listener) {
 		String url = QQConstants.BASEUSERINFO;
-		url = URLUtil.constructUrl(url, getCommonParams(accessToken), "utf-8");
-		client.get(url, null, listener);
+		client.get(url, null,getCommonParams(accessToken), listener);
 	}
 
 	protected Map<String, String> getCommonParams(AccessToken accessToken) {

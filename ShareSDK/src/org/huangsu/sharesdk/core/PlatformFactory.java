@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.huangsu.sharesdk.bean.ShareParams;
 import org.huangsu.sharesdk.douban.DoubanPlatform;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.network.NetworkClient;
-import org.huangsu.sharesdk.network.VolleyNetworkClient;
 import org.huangsu.sharesdk.renren.RenRenPlatform;
 import org.huangsu.sharesdk.sina.SinaPlatform;
 import org.huangsu.sharesdk.tencent.QQPlatform;
@@ -19,22 +17,27 @@ import org.huangsu.sharesdk.tencent.WechatMomentsPlatform;
 import org.huangsu.sharesdk.tencent.WechatPlatform;
 import org.huangsu.sharesdk.util.LogUtil;
 
-import android.app.Activity;
 import android.content.Context;
 
+/**
+ * The factory is used to manage plaforms
+ * 
+ * @author huangsu2012@gmail.com
+ * 
+ */
 public class PlatformFactory implements PlatformConstants {
 	private static PlatformFactory platformFactory;
 	private NetworkClient client;
 	private Context context;
+	private DataManager dataManager;
 	private Map<String, Platform> platforms;
 	private Map<String, Class<? extends Platform>> platformClasses;
+	private boolean inited = false;
 
-	private PlatformFactory(Context context, NetworkClient client) {
+	private PlatformFactory(Context context) {
 		this.context = context.getApplicationContext();
 		platforms = new ConcurrentHashMap<String, Platform>();
-		this.client = client;
 		initPlatformClasses();
-
 	}
 
 	private void initPlatformClasses() {
@@ -49,26 +52,54 @@ public class PlatformFactory implements PlatformConstants {
 		platformClasses.put(DOUBAN, DoubanPlatform.class);
 	}
 
-	public static synchronized PlatformFactory getInstance(Context context,
-			NetworkClient client) {
+	public static synchronized PlatformFactory getInstance(Context context) {
 		if (platformFactory == null) {
-			platformFactory = new PlatformFactory(context, client);
+			if (context == null) {
+				throw new NullPointerException("the context is null");
+			}
+			platformFactory = new PlatformFactory(context);
 		}
 		return platformFactory;
 	}
 
-	public static synchronized PlatformFactory getInstance(Context context) {
-		return getInstance(context, VolleyNetworkClient.getInstance(context));
+	/**
+	 * You should invoke this function when you want supply your own
+	 * implementation of<a>NetworkClient<a> and <a>DataManager<a>
+	 * 
+	 * @param client
+	 * @param dataManager
+	 */
+	public PlatformFactory init(NetworkClient client, DataManager dataManager) {
+		if (dataManager == null) {
+			dataManager = new DefaultDataManager(context, null);
+		}
+		if (client == null) {
+			client = new DefaultNetworkClient();
+		}
+		this.client = client;
+		this.dataManager = dataManager;
+		inited = true;
+		return platformFactory;
+	}
+
+	public PlatformFactory init() {
+		if (!inited) {
+			init(new DefaultNetworkClient(), new DefaultDataManager(context,
+					null));
+		}
+		return platformFactory;
 	}
 
 	public Platform getPlatform(String platformid) {
+		init();
 		Platform platform = platforms.get(platformid);
 		if (platform == null) {
 			Class<? extends Platform> clazz = platformClasses.get(platformid);
 			if (clazz != null) {
 				try {
 					platform = clazz.getConstructor(Context.class,
-							NetworkClient.class).newInstance(context, client);
+							NetworkClient.class, DataManager.class)
+							.newInstance(context, client, dataManager);
 				} catch (InstantiationException e) {
 					LogUtil.e(e, "");
 				} catch (IllegalAccessException e) {
@@ -88,7 +119,7 @@ public class PlatformFactory implements PlatformConstants {
 		return platform;
 	}
 
-	public void share(String platformid, Activity activity, ShareParams params,
+	public void share(String platformid, ShareParams params,
 			ShareResultListener listener) {
 		Platform platform = getPlatform(platformid);
 		if (platform != null) {
@@ -112,5 +143,6 @@ public class PlatformFactory implements PlatformConstants {
 		platformClasses = null;
 		platforms = null;
 		context = null;
+		dataManager = null;
 	}
 }

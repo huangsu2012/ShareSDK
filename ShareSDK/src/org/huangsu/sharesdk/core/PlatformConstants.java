@@ -28,16 +28,6 @@ public interface PlatformConstants {
 	final static String SCOPE="scope";
 	final static String SHOWPRIORITY="showpriority";
 	/**
-	 * 以下为保存在sharedpref的属性名
-	 */
-	public final static String TOKEN = "token";// 令牌
-	public final static String UID = "third_uid";// 用户id
-	public final static String EXPIREDIN = "expires_in";// 授权过期时间
-	public final static String REFRESHTOKEN = "refresh_token";// 刷新令牌
-	public final static String USERNAME = "user_name";// 用户的昵称
-	public final static String USERAVATAR = "user_avatar";// 用户头像
-	public final static String USERGENDER = "user_gender";// 用户性别
-	/**
 	 * 以下为id属性的值
 	 */
 	public final static String TENCENTWEIBO = "tecentweibo";

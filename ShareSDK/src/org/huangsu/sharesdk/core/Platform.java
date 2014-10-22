@@ -12,7 +12,6 @@ import org.huangsu.sharesdk.listener.BasicUserInfoListener;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ResponseListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.XMLUtil;
 import org.xmlpull.v1.XmlPullParser;
@@ -21,8 +20,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -32,30 +29,38 @@ import com.google.gson.JsonObject;
 
 public abstract class Platform implements PlatformConstants {
 	protected final PlatformInfo info;
-	protected Context context;
+	protected final Context context;
 	private boolean isInit = false;
-	protected String sharedPrefPrefix = "sharesdk_";
-	protected NetworkClient client;
+	protected final NetworkClient client;
 	protected final static int DEFAULT_OAUTH_CODE = 8888;
 	protected final static int DEFAULT_SSO_CODE = 5657;
-	protected String dots = "...";
-	protected Charset charset = Charset.forName("UTF-8");
+	protected final String dots = "...";
+	protected final Charset charset = Charset.forName("UTF-8");
 	final static String LOGINACTION = "org.huangsu.sharesdk.core.loginAction";
 	final static String SHAREACTION = "org.huangsu.sharesdk.core.shareAction";
+	final DataManager dataManager;
 
 	public PlatformInfo getInfo() {
+		initInfo();
 		return info;
 	}
 
-	protected Platform(Context context, NetworkClient client) {
-		if (context == null || client == null) {
-			throw new IllegalArgumentException(
-					"context and client must not be null");
+	protected Platform(Context context, NetworkClient client,
+			DataManager dataManager) {
+		if (context == null) {
+			throw new NullPointerException("context is null");
+		}
+		if (client == null) {
+			throw new NullPointerException("client is null");
+		}
+		if (dataManager == null) {
+			throw new NullPointerException("dataManager is null");
 		}
 		info = new PlatformInfo(getPlatformid());
 		info.nameId = getNameId();
 		this.context = context.getApplicationContext();
 		this.client = client;
+		this.dataManager = dataManager;
 	}
 
 	protected abstract String getPlatformid();
@@ -67,7 +72,7 @@ public abstract class Platform implements PlatformConstants {
 	 * 
 	 * @return
 	 */
-	protected abstract boolean shouldOauthBeforeShare();
+	public abstract boolean shouldOauthBeforeShare();
 
 	public abstract Map<String, String> getCodeReqParams();
 
@@ -223,11 +228,9 @@ public abstract class Platform implements PlatformConstants {
 	 * 
 	 * @return
 	 */
-	protected boolean isOauth() {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + info.platformid, Context.MODE_PRIVATE);
-		if (preferences != null
-				&& !TextUtils.isEmpty(preferences.getString(TOKEN, null))) {
+	public boolean isOauth() {
+		AccessToken accessToken = getAccessToken();
+		if (accessToken != null && !TextUtils.isEmpty(accessToken.token)) {
 			return true;
 		}
 		return false;
@@ -238,26 +241,18 @@ public abstract class Platform implements PlatformConstants {
 	 * 
 	 * @return
 	 */
-	protected boolean isExpired() {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + info.platformid, Context.MODE_PRIVATE);
-		if (preferences != null
-				&& preferences.getLong(EXPIREDIN, 0) > System
-						.currentTimeMillis()) {
+	public boolean isExpired() {
+		AccessToken accessToken = getAccessToken();
+		if (accessToken != null
+				&& accessToken.expiresIn > System.currentTimeMillis()) {
 			return false;
 		}
 		return true;
 	}
 
 	public void logout() {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + info.platformid, Activity.MODE_PRIVATE);
-		Editor editor = preferences.edit();
-		editor.putString(TOKEN, null);
-		editor.putLong(EXPIREDIN, 0);
-		editor.putString(UID, null);
-		editor.putString(REFRESHTOKEN, null);
-		editor.commit();
+		AccessToken accessToken = new AccessToken("", "", 0, "");
+		dataManager.saveAccessToken(info.platformid, accessToken);
 	}
 
 	public final void share(ShareParams params, ShareResultListener listener) {
@@ -393,69 +388,28 @@ public abstract class Platform implements PlatformConstants {
 	}
 
 	protected void saveAccessToken(AccessToken accessToken) {
-		if (accessToken != null) {
-			saveAccessToken(accessToken.token, accessToken.uid,
-					accessToken.expiresIn, accessToken.refreshToken);
+		saveAccessToken(info.platformid, accessToken);
+	}
+
+	protected void saveAccessToken(String platformid, AccessToken accessToken) {
+		if (dataManager != null) {
+			dataManager.saveAccessToken(platformid, accessToken);
 		}
 	}
 
-	protected void saveAccessToken(String accessToken, String uid,
-			long expiresIn) {
-		saveAccessToken(accessToken, uid, expiresIn, null);
-	}
-
-	protected void saveAccessToken(String accessToken, String uid,
-			long expiresIn, String refreshToken) {
-		saveAccessToken(info.platformid, accessToken, uid, expiresIn,
-				refreshToken);
-	}
-
-	protected void saveAccessToken(String platformid, String accessToken,
-			String uid, long expiresIn, String refreshToken) {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + platformid, Activity.MODE_PRIVATE);
-		Editor editor = preferences.edit();
-		editor.putString(TOKEN, accessToken);
-		editor.putLong(EXPIREDIN, expiresIn);
-		editor.putString(UID, uid);
-		editor.putString(REFRESHTOKEN, refreshToken);
-		editor.commit();
-	}
-
-	protected AccessToken getAccessToken() {
+	public AccessToken getAccessToken() {
 		return getAccessToken(info.platformid);
 	}
 
 	protected AccessToken getAccessToken(String platformid) {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + platformid, Context.MODE_PRIVATE);
-		if (preferences != null) {
-			String token = preferences.getString(TOKEN, null);
-			String uid = preferences.getString(UID, null);
-			long expiresIn = preferences.getLong(EXPIREDIN, 0);
-			if (!TextUtils.isEmpty(token)) {
-				return new AccessToken(token, uid, expiresIn,
-						preferences.getString(REFRESHTOKEN, null));
-			}
-		}
-		return null;
+		return dataManager == null ? null : dataManager
+				.getAccessToken(platformid);
 	}
 
 	protected void saveBasicUserInfo(BasicUserInfo userInfo) {
-		if (userInfo != null) {
-			saveBasicUserInfo(userInfo.getGender(), userInfo.getAvatar(),
-					userInfo.getName());
+		if (dataManager != null) {
+			dataManager.saveBasicUserInfo(info.platformid, userInfo);
 		}
-	}
-
-	protected void saveBasicUserInfo(int gender, String avatar, String name) {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + info.platformid, Activity.MODE_PRIVATE);
-		Editor editor = preferences.edit();
-		editor.putString(USERAVATAR, avatar);
-		editor.putInt(USERGENDER, gender);
-		editor.putString(USERNAME, name);
-		editor.commit();
 	}
 
 	protected BasicUserInfo getBasicUserInfo() {
@@ -463,22 +417,11 @@ public abstract class Platform implements PlatformConstants {
 	}
 
 	protected BasicUserInfo getBasicUserInfo(String platformid) {
-		SharedPreferences preferences = context.getSharedPreferences(
-				sharedPrefPrefix + platformid, Activity.MODE_PRIVATE);
-		if (preferences != null) {
-			String uid = preferences.getString(UID, null);
-			int gender = preferences.getInt(USERGENDER, 0);
-			String avatar = preferences.getString(USERAVATAR, null);
-			String name = preferences.getString(USERNAME, null);
-			if (!TextUtils.isEmpty(uid) && !TextUtils.isEmpty(name)) {
-				return new BasicUserInfo(uid, gender, avatar, name);
-			}
-		}
-		return null;
+		return dataManager == null ? null : dataManager
+				.getBasicUserInfo(info.platformid);
 	}
 
-	public void getUserInfo(Activity activity, String uid,
-			ResponseListener listener) {
+	public void getUserInfo(String uid, ResponseListener listener) {
 		final ResponseListener responseListener = listener;
 		final String uidTemp = uid;
 		login(new OauthResultListener() {
@@ -505,12 +448,11 @@ public abstract class Platform implements PlatformConstants {
 		}, false);
 	}
 
-	public void getBasicUserInfo(Activity activity, String uid,
-			BasicUserInfoListener listener) {
+	public void getBasicUserInfo(String uid, BasicUserInfoListener listener) {
 		BasicUserInfo info = getBasicUserInfo();
 		if (info == null) {
 			final BasicUserInfoListener temp = listener;
-			getUserInfo(activity, uid, new ResponseListener() {
+			getUserInfo(uid, new ResponseListener() {
 
 				@Override
 				public void onSuccess(JsonObject result) {

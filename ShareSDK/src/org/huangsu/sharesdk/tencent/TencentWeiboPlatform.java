@@ -10,8 +10,9 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.huangsu.sharesdk.R;
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.ProxyActivity;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
 
@@ -19,8 +20,8 @@ import android.content.Context;
 
 public class TencentWeiboPlatform extends QQPlatform {
 
-	protected TencentWeiboPlatform(Context context, NetworkClient client) {
-		super(context, client);
+	protected TencentWeiboPlatform(Context context, NetworkClient client,DataManager dataManager) {
+		super(context, client,dataManager);
 	}
 
 	@Override
@@ -34,7 +35,7 @@ public class TencentWeiboPlatform extends QQPlatform {
 	}
 
 	@Override
-	protected boolean shouldOauthBeforeShare() {
+	public boolean shouldOauthBeforeShare() {
 		return true;
 	}
 

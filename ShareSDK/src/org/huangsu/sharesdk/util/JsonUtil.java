@@ -3,7 +3,6 @@ package org.huangsu.sharesdk.util;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import com.android.volley.VolleyLog;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -46,7 +45,7 @@ public class JsonUtil {
 				model = gson.fromJson(json, clazz);
 			}
 		} catch (Exception ex) {
-			VolleyLog.e(ex, "");
+			LogUtil.e(ex, "");
 			return null;
 		}
 		return model;

@@ -7,15 +7,15 @@ import org.huangsu.sharesdk.R;
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.BasicUserInfo;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.JsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
-import org.huangsu.sharesdk.util.URLUtil;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -24,8 +24,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class RenRenPlatform extends Platform {
-	protected RenRenPlatform(Context context, NetworkClient client) {
-		super(context, client);
+	protected RenRenPlatform(Context context, NetworkClient client,DataManager dataManager) {
+		super(context, client,dataManager);
 	}
 
 	private Map<String, String> headers;
@@ -41,7 +41,7 @@ public class RenRenPlatform extends Platform {
 	}
 
 	@Override
-	protected boolean shouldOauthBeforeShare() {
+	public boolean shouldOauthBeforeShare() {
 		return true;
 	}
 
@@ -104,11 +104,9 @@ public class RenRenPlatform extends Platform {
 	}
 
 	@Override
-	protected void reoauth(ProxyActivity activity,
-			Long transaction) {
+	protected void reoauth(ProxyActivity activity, Long transaction) {
 		AccessToken accessToken = getAccessToken();
-		if (accessToken != null
-				&& !TextUtils.isEmpty(accessToken.refreshToken)) {
+		if (accessToken != null && !TextUtils.isEmpty(accessToken.refreshToken)) {
 			initInfo();
 			final ProxyActivity proxyActivity = activity;
 			String url = RenRenConstants.REFRESHTOKEN;
@@ -117,15 +115,14 @@ public class RenRenPlatform extends Platform {
 			map.put("refresh_token", accessToken.refreshToken);
 			map.put("client_id", info.appkey);
 			map.put("client_secret", info.appsecret);
-			url = URLUtil.constructUrl(url, map);
-			client.get(url, new ResponseListener() {
+			client.get(url, null, map, new ResponseListener() {
 
 				@Override
 				public void onSuccess(JsonObject result) {
 					AccessToken accessToken = parseToken(result);
 					if (accessToken != null) {
 						proxyActivity.onSuccess(accessToken);
-					}else{
+					} else {
 						proxyActivity.onError("parse data error", null);
 					}
 					saveAccessToken(accessToken);
@@ -229,9 +226,8 @@ public class RenRenPlatform extends Platform {
 		String url = RenRenConstants.BASEUSERINFO;
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("userId", uid);
-		params.put("access_token", accessToken.token);
-		url = URLUtil.constructUrl(url, params, "utf-8");
-		client.get(url, null, listener);
+		getHeaders(accessToken.token);
+		client.get(url, headers, params, listener);
 	}
 
 	@Override

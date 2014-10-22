@@ -6,15 +6,15 @@ import java.util.Map;
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.BasicUserInfo;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ResponseListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.JsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
-import org.huangsu.sharesdk.util.URLUtil;
 
 import android.content.Context;
 import android.content.Intent;
@@ -27,13 +27,15 @@ import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
 import com.tencent.mm.sdk.modelmsg.WXImageObject;
 import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
 import com.tencent.mm.sdk.modelmsg.WXTextObject;
+import com.tencent.mm.sdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 
 public abstract class WechatBase extends Platform {
-	protected WechatBase(Context context, NetworkClient client) {
-		super(context, client);
+	protected WechatBase(Context context, NetworkClient client,
+			DataManager dataManager) {
+		super(context, client, dataManager);
 	}
 
 	protected static IWXAPI iwxapi;
@@ -60,9 +62,8 @@ public abstract class WechatBase extends Platform {
 					String state = ((SendAuth.Resp) baseResp).state;
 					if (LogUtil.TAG.equals(state)) {
 						String url = info.accesstokenurl;
-						url = URLUtil.constructUrl(url,
-								getAccessTokenReqParams(code));
-						client.get(url, null, new ParseTokenListener(listener));
+						client.get(url, null, getAccessTokenReqParams(code),
+								new ParseTokenListener(listener));
 					}
 					break;
 				case BaseResp.ErrCode.ERR_USER_CANCEL:
@@ -110,15 +111,14 @@ public abstract class WechatBase extends Platform {
 			map.put("appid", info.appid);
 			map.put("grant_type", "refresh_token");
 			map.put("refresh_token", accessToken.refreshToken);
-			url = URLUtil.constructUrl(url, map);
-			client.get(url, null, new ParseTokenListener(activity));
+			client.get(url, null, map, new ParseTokenListener(activity));
 		} else {
 			oauth(activity, transaction);
 		}
 	}
 
 	@Override
-	protected boolean shouldOauthBeforeShare() {
+	public boolean shouldOauthBeforeShare() {
 		return false;
 	}
 
@@ -162,8 +162,9 @@ public abstract class WechatBase extends Platform {
 			if (!iwxapi.sendReq(req)) {
 				LogUtil.d("send req to wechat fail");
 				activity.onError("send req to wechat fail", null);
-			}else{
-				oauthResultListeners.put(String.valueOf(System.currentTimeMillis()), activity);
+			} else {
+				oauthResultListeners.put(
+						String.valueOf(System.currentTimeMillis()), activity);
 			}
 		} else {
 			activity.onError("register to wechat app fail", null);
@@ -188,14 +189,13 @@ public abstract class WechatBase extends Platform {
 	}
 
 	@Override
-	protected AccessToken getAccessToken() {
-		return super.getAccessToken(WECHAT);
+	public AccessToken getAccessToken() {
+		return getAccessToken(WECHAT);
 	}
 
 	@Override
-	protected void saveAccessToken(String platformid, String accessToken,
-			String uid, long expiresIn, String refreshToken) {
-		super.saveAccessToken(WECHAT, accessToken, uid, expiresIn, refreshToken);
+	protected void saveAccessToken(AccessToken accessToken) {
+		saveAccessToken(WECHAT, accessToken);
 	}
 
 	@Override
@@ -234,16 +234,23 @@ public abstract class WechatBase extends Platform {
 		WXMediaMessage mediaMessage = new WXMediaMessage();
 		mediaMessage.title = params.getTitle();
 		mediaMessage.description = params.getContent();
-		if (params.getBitmap() == null && params.getImageUrls() == null) {
-			WXTextObject textObject = new WXTextObject();
-			textObject.text = params.getContent();
-			mediaMessage.mediaObject = textObject;
+		if (TextUtils.isEmpty(params.getTargetUrl())) {
+			if (params.getBitmap() == null && params.getImageUrls() == null) {
+				WXTextObject textObject = new WXTextObject();
+				textObject.text = params.getContent();
+				mediaMessage.mediaObject = textObject;
+			} else {
+				WXImageObject imageObject = new WXImageObject();
+				imageObject.imageUrl = params.getImageUrls() == null ? null
+						: params.getImageUrls()[0];
+				imageObject.imageData = params.getBitmap();
+				mediaMessage.mediaObject = imageObject;
+			}
 		} else {
-			WXImageObject imageObject = new WXImageObject();
-			imageObject.imageUrl = params.getImageUrls() == null ? null
-					: params.getImageUrls()[0];
-			imageObject.imageData = params.getBitmap();
-			mediaMessage.mediaObject = imageObject;
+			WXWebpageObject webpageObject = new WXWebpageObject(
+					params.getTargetUrl());
+			mediaMessage.mediaObject = webpageObject;
+			mediaMessage.thumbData = params.getBitmap();
 		}
 		req.message = mediaMessage;
 		if (!iwxapi.sendReq(req)) {
@@ -280,8 +287,7 @@ public abstract class WechatBase extends Platform {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("access_token", accessToken.token);
 		map.put("openid", uid);
-		url = URLUtil.constructUrl(url, map);
-		client.get(url, null, listener);
+		client.get(url, null, map, listener);
 
 	}
 

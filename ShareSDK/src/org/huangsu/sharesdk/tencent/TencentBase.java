@@ -2,11 +2,12 @@ package org.huangsu.sharesdk.tencent;
 
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.JsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.json.JSONException;
@@ -25,8 +26,9 @@ import com.tencent.tauth.UiError;
 import com.tencent.utils.SystemUtils;
 
 public abstract class TencentBase extends Platform {
-	protected TencentBase(Context context, NetworkClient client) {
-		super(context, client);
+	protected TencentBase(Context context, NetworkClient client,
+			DataManager dataManager) {
+		super(context, client, dataManager);
 	}
 
 	protected Tencent tencent;
@@ -104,7 +106,7 @@ public abstract class TencentBase extends Platform {
 	}
 
 	@Override
-	protected boolean shouldOauthBeforeShare() {
+	public boolean shouldOauthBeforeShare() {
 		return false;
 	}
 
@@ -245,8 +247,10 @@ public abstract class TencentBase extends Platform {
 						String openid = jsonObject.getString("openid");
 						String access_token = jsonObject
 								.getString("access_token");
-						saveAccessToken(access_token, openid, expiresin);
-						listener.onSuccess(getAccessToken());
+						AccessToken accessToken = new AccessToken(access_token,
+								openid, expiresin);
+						saveAccessToken(accessToken);
+						listener.onSuccess(accessToken);
 					} else {
 						listener.onError(jsonObject.getString("msg"), null);
 					}

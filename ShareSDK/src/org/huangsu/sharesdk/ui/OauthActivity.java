@@ -41,7 +41,8 @@ public class OauthActivity extends Activity {
 			finish();
 			return;
 		}
-		platform = PlatformFactory.getInstance(this).getPlatform(platformid);
+		platform = PlatformFactory.getInstance(this).getPlatform(
+				platformid);
 		if (platform == null) {
 			finish();
 			return;
@@ -58,13 +59,13 @@ public class OauthActivity extends Activity {
 		Map<String, String> authParams = platform.getCodeReqParams();
 		if (authParams != null) {
 			String encodedURL = URLUtil.constructUrl(info.authorizeurl,
-					authParams, null);
+					authParams);
 			LogUtil.d("the encoded authrize url:%s", encodedURL);
 			progressDialog = ProgressDialog.show(this, null,
 					getString(R.string.sharesdk_loading_page));
 			webView.loadUrl(encodedURL);
 		} else {
-			feedBack(RESULT_ERROR, "缺少必要授权参数", null);
+			feedBack(RESULT_ERROR, "the authParams is null", null);
 		}
 	}
 
@@ -142,8 +143,7 @@ public class OauthActivity extends Activity {
 				progressDialog = ProgressDialog.show(OauthActivity.this, null,
 						getString(R.string.sharesdk_loading));
 				progressDialog.show();
-			} else {
-				view.loadUrl(url);
+				return false;
 			}
 			return true;
 		}

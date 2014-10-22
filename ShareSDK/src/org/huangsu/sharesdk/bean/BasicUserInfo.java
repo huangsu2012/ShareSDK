@@ -11,45 +11,13 @@ import android.os.Parcelable;
  */
 public class BasicUserInfo implements Parcelable {
 	// 用户id
-	private String uid;
+	public String uid;
 	// 用户性别 0男，1 女，2未知
-	private int gender;
+	public int gender;
 	// 用户头像
-	private String avatar;
+	public String avatar;
 	
-	private String name;
-
-	public String getUid() {
-		return uid;
-	}
-
-	public void setUid(String uid) {
-		this.uid = uid;
-	}
-
-	public int getGender() {
-		return gender;
-	}
-
-	public void setGender(int gender) {
-		this.gender = gender;
-	}
-
-	public String getAvatar() {
-		return avatar;
-	}
-
-	public void setAvatar(String avatar) {
-		this.avatar = avatar;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
+	public String name;
 
 	public BasicUserInfo(String uid, int gender, String avatar,String name) {
 		this.uid = uid;

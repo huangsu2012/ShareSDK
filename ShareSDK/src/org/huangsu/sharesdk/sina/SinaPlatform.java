@@ -11,14 +11,14 @@ import org.huangsu.sharesdk.R;
 import org.huangsu.sharesdk.bean.AccessToken;
 import org.huangsu.sharesdk.bean.BasicUserInfo;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
-import org.huangsu.sharesdk.network.NetworkClient;
 import org.huangsu.sharesdk.util.JsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
-import org.huangsu.sharesdk.util.URLUtil;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -39,8 +39,9 @@ import com.google.gson.JsonObject;
 import com.sina.sso.RemoteSSO;
 
 public class SinaPlatform extends Platform {
-	protected SinaPlatform(Context context, NetworkClient client) {
-		super(context, client);
+	protected SinaPlatform(Context context, NetworkClient client,
+			DataManager dataManager) {
+		super(context, client, dataManager);
 	}
 
 	private ServiceConnection conn = null;
@@ -76,7 +77,7 @@ public class SinaPlatform extends Platform {
 	}
 
 	@Override
-	protected boolean shouldOauthBeforeShare() {
+	public boolean shouldOauthBeforeShare() {
 		return true;
 	}
 
@@ -207,10 +208,9 @@ public class SinaPlatform extends Platform {
 								* 1000
 								+ System.currentTimeMillis();
 						String uid = data.getStringExtra("uid");
-						saveAccessToken(accessToken, uid, expiresin);
-
 						AccessToken accessToken2 = new AccessToken(accessToken,
 								uid, expiresin);
+						saveAccessToken(accessToken2);
 						activity.onSuccess(accessToken2);
 
 					} else {
@@ -335,8 +335,7 @@ public class SinaPlatform extends Platform {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("access_token", accessToken.token);
 		params.put("uid", uid);
-		url = URLUtil.constructUrl(url, params, "utf-8");
-		client.get(url, null, listener);
+		client.get(url, null, params, listener);
 	}
 
 	@Override

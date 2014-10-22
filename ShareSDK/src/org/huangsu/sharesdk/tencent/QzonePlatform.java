@@ -4,8 +4,9 @@ import java.util.ArrayList;
 
 import org.huangsu.sharesdk.R;
 import org.huangsu.sharesdk.bean.ShareParams;
+import org.huangsu.sharesdk.core.DataManager;
+import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.ProxyActivity;
-import org.huangsu.sharesdk.network.NetworkClient;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -15,10 +16,9 @@ import com.tencent.tauth.IUiListener;
 
 public class QzonePlatform extends QQPlatform {
 
-
-
-	protected QzonePlatform(Context context, NetworkClient client) {
-		super(context, client);
+	protected QzonePlatform(Context context, NetworkClient client,
+			DataManager dataManager) {
+		super(context, client, dataManager);
 	}
 
 	@Override
@@ -47,8 +47,8 @@ public class QzonePlatform extends QQPlatform {
 			for (int i = 0; i < length; i++) {
 				imageUrls.add(params.getImageUrls()[i]);
 			}
-		}else{
-			imageUrls=new ArrayList<String>(1);
+		} else {
+			imageUrls = new ArrayList<String>(1);
 		}
 		data.putStringArrayList(QzoneShare.SHARE_TO_QQ_IMAGE_URL, imageUrls);
 		tencent.shareToQzone(activity, data, listener);
