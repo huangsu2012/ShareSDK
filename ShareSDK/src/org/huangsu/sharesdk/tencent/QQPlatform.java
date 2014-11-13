@@ -11,7 +11,7 @@ import org.huangsu.sharesdk.core.DataManager;
 import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
-import org.huangsu.sharesdk.util.JsonUtil;
+import org.huangsu.sharesdk.util.GsonUtil;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -47,7 +47,7 @@ public class QQPlatform extends TencentBase {
 	}
 
 	@Override
-	public Map<String, String> getCodeReqParams() {
+	protected Map<String, String> getCodeReqParams() {
 		initInfo();
 		if (checkCofigIntegrity()) {
 			Map<String, String> authParams = new HashMap<String, String>();
@@ -130,7 +130,7 @@ public class QQPlatform extends TencentBase {
 
 	@Override
 	protected String getErrorMsg(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(String.class, jsonObject, "msg");
+		return GsonUtil.getAttribute(String.class, jsonObject, "msg");
 	}
 
 	@Override
@@ -155,18 +155,18 @@ public class QQPlatform extends TencentBase {
 
 	@Override
 	protected BasicUserInfo parseBasicUserInfo(JsonObject jsonObject) {
-		Integer ret = JsonUtil.getAttribute(Integer.class, jsonObject, "ret");
+		Integer ret = GsonUtil.getAttribute(Integer.class, jsonObject, "ret");
 		if (ret != null && ret == 0) {
-			String name = JsonUtil.getAttribute(String.class, jsonObject,
+			String name = GsonUtil.getAttribute(String.class, jsonObject,
 					"nickname");
-			String avatar = JsonUtil.getAttribute(String.class, jsonObject,
+			String avatar = GsonUtil.getAttribute(String.class, jsonObject,
 					"figureurl_qq_2");
 			if (TextUtils.isEmpty(avatar)) {
-				avatar = JsonUtil.getAttribute(String.class, jsonObject,
+				avatar = GsonUtil.getAttribute(String.class, jsonObject,
 						"figureurl_qq_1");
 			}
 			int gender = 0;
-			if ("女".equals(JsonUtil.getAttribute(String.class, jsonObject,
+			if ("女".equals(GsonUtil.getAttribute(String.class, jsonObject,
 					"gender"))) {
 				gender = 1;
 			}

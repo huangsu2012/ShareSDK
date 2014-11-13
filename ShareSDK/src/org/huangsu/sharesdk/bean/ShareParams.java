@@ -1,7 +1,5 @@
 package org.huangsu.sharesdk.bean;
 
-import java.util.Arrays;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
@@ -12,7 +10,6 @@ public class ShareParams implements Parcelable{
 	private String comment;
 	private String[] imageUrls;
 	private String imageName;
-	private int byteLength;
 	private byte[] bitmap;
 	private String targetUrl;
 
@@ -61,7 +58,7 @@ public class ShareParams implements Parcelable{
 			source.readStringArray(imageUrls);
 		}
 		imageName = source.readString();
-		byteLength = source.readInt();
+		int byteLength = source.readInt();
 		if (byteLength > 0) {
 			bitmap = new byte[byteLength];
 			source.readByteArray(bitmap);
@@ -147,29 +144,6 @@ public class ShareParams implements Parcelable{
 		} else {
 			this.targetUrl = targetUrl;
 		}
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ShareParams [content=");
-		builder.append(content);
-		builder.append(", title=");
-		builder.append(title);
-		builder.append(", comment=");
-		builder.append(comment);
-		builder.append(", imageUrls=");
-		builder.append(Arrays.toString(imageUrls));
-		builder.append(", imageName=");
-		builder.append(imageName);
-		builder.append(", byteLength=");
-		builder.append(byteLength);
-//		builder.append(", bitmap=");
-//		builder.append(Arrays.toString(bitmap));
-		builder.append(", targetUrl=");
-		builder.append(targetUrl);
-		builder.append("]");
-		return builder.toString();
 	}
 	
 

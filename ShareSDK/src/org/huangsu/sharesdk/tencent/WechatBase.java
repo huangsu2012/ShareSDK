@@ -13,7 +13,7 @@ import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ResponseListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.util.JsonUtil;
+import org.huangsu.sharesdk.util.GsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 
 import android.content.Context;
@@ -123,7 +123,7 @@ public abstract class WechatBase extends Platform {
 	}
 
 	@Override
-	public Map<String, String> getCodeReqParams() {
+	protected Map<String, String> getCodeReqParams() {
 		return null;
 	}
 
@@ -173,15 +173,15 @@ public abstract class WechatBase extends Platform {
 
 	@Override
 	protected AccessToken parseToken(JsonObject jsonObject) {
-		String token = JsonUtil.getAttribute(String.class, jsonObject,
+		String token = GsonUtil.getAttribute(String.class, jsonObject,
 				"access_token");
 		if (!TextUtils.isEmpty(token)) {
-			String uid = JsonUtil.getAttribute(String.class, jsonObject,
+			String uid = GsonUtil.getAttribute(String.class, jsonObject,
 					"openid");
 			long expiresIn = System.currentTimeMillis()
-					+ JsonUtil.getAttribute(Long.class, jsonObject,
+					+ GsonUtil.getAttribute(Long.class, jsonObject,
 							"expires_in") * 1000;
-			String refreshToken = JsonUtil.getAttribute(String.class,
+			String refreshToken = GsonUtil.getAttribute(String.class,
 					jsonObject, "refresh_token");
 			return new AccessToken(token, uid, expiresIn, refreshToken);
 		}
@@ -277,7 +277,7 @@ public abstract class WechatBase extends Platform {
 
 	@Override
 	protected String getErrorMsg(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(String.class, jsonObject, "errmsg");
+		return GsonUtil.getAttribute(String.class, jsonObject, "errmsg");
 	}
 
 	@Override
@@ -293,14 +293,14 @@ public abstract class WechatBase extends Platform {
 
 	@Override
 	protected BasicUserInfo parseBasicUserInfo(JsonObject jsonObject) {
-		String uid = JsonUtil.getAttribute(String.class, jsonObject, "openid");
+		String uid = GsonUtil.getAttribute(String.class, jsonObject, "openid");
 		if (!TextUtils.isEmpty(uid)) {
-			String name = JsonUtil.getAttribute(String.class, jsonObject,
+			String name = GsonUtil.getAttribute(String.class, jsonObject,
 					"nickname");
-			String avatar = JsonUtil.getAttribute(String.class, jsonObject,
+			String avatar = GsonUtil.getAttribute(String.class, jsonObject,
 					"headimgurl");
 			int gender = 0;
-			String sex = JsonUtil.getAttribute(String.class, jsonObject, "sex");
+			String sex = GsonUtil.getAttribute(String.class, jsonObject, "sex");
 			if ("1".equals(sex)) {
 				gender = 0;
 			} else if ("2".equals(sex)) {

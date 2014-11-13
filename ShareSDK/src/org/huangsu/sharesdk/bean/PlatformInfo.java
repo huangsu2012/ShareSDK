@@ -3,7 +3,7 @@ package org.huangsu.sharesdk.bean;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class PlatformInfo implements Parcelable,Comparable<PlatformInfo> {
+public class PlatformInfo implements Parcelable, Comparable<PlatformInfo> {
 	public String appkey;
 	public String redirecturl;
 	public String accesstokenurl;
@@ -27,7 +27,7 @@ public class PlatformInfo implements Parcelable,Comparable<PlatformInfo> {
 		appid = source.readString();
 		appsecret = source.readString();
 		platformid = source.readString();
-		scope=source.readString();
+		scope = source.readString();
 		showpriority = source.readInt();
 		nameId = source.readInt();
 	}
@@ -89,7 +89,6 @@ public class PlatformInfo implements Parcelable,Comparable<PlatformInfo> {
 			return false;
 		return true;
 	}
-	
 
 	@Override
 	public String toString() {
@@ -120,7 +119,13 @@ public class PlatformInfo implements Parcelable,Comparable<PlatformInfo> {
 
 	@Override
 	public int compareTo(PlatformInfo another) {
-		return showpriority - another.showpriority;
+		if (showpriority > another.showpriority) {
+			return 1;
+		} else if (showpriority < another.showpriority) {
+			return -1;
+		} else {
+			return 0;
+		}
 	}
 
 }

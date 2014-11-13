@@ -12,8 +12,8 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
-public class JsonUtil {
-	private JsonUtil() {
+public class GsonUtil {
+	private GsonUtil() {
 
 	}
 
@@ -23,7 +23,7 @@ public class JsonUtil {
 	 * @param model
 	 * @return
 	 */
-	public static String constructJSON(Object model) {
+	public static String toJSON(Object model) {
 		if (model == null) {
 			return null;
 		}
@@ -37,7 +37,7 @@ public class JsonUtil {
 	 * @param json
 	 * @return
 	 */
-	public static <T> T pasrseFromJSON(String json, Class<T> clazz) {
+	public static <T> T pasrseJSON(String json, Class<T> clazz) {
 		T model = null;
 		try {
 			if (!StringUtil.isEmpty(json)) {
@@ -51,7 +51,7 @@ public class JsonUtil {
 		return model;
 	}
 
-	public static <T> T pasrseFromJSON(String json, TypeToken<T> typeToken) {
+	public static <T> T pasrseJSON(String json, TypeToken<T> typeToken) {
 		T result = null;
 		if (typeToken != null && !StringUtil.isEmpty(json)) {
 			Gson gson = new Gson();
@@ -60,7 +60,7 @@ public class JsonUtil {
 		return result;
 	}
 
-	public static JsonObject getJsonObjectFromJsonStr(String json) {
+	public static JsonObject getJsonObject(String json) {
 		if (StringUtil.isEmpty(json)) {
 			return null;
 		}
@@ -85,7 +85,7 @@ public class JsonUtil {
 	 * @return T
 	 */
 	public static <T> T getAttribute(Class<T> clazz, String json, String key) {
-		return getAttribute(clazz, getJsonObjectFromJsonStr(json), key);
+		return getAttribute(clazz, getJsonObject(json), key);
 	}
 
 	@SuppressWarnings("unchecked")

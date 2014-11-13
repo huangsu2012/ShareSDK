@@ -8,7 +8,6 @@ import org.huangsu.sharesdk.core.PlatformFactory;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
 import org.huangsu.sharesdk.util.LogUtil;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;

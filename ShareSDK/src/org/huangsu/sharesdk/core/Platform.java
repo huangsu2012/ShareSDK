@@ -12,6 +12,7 @@ import org.huangsu.sharesdk.listener.BasicUserInfoListener;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ResponseListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
+import org.huangsu.sharesdk.ui.OauthActivity;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.XMLUtil;
 import org.xmlpull.v1.XmlPullParser;
@@ -74,9 +75,9 @@ public abstract class Platform implements PlatformConstants {
 	 */
 	public abstract boolean shouldOauthBeforeShare();
 
-	public abstract Map<String, String> getCodeReqParams();
+	protected abstract Map<String, String> getCodeReqParams();
 
-	public String getCodeFromUrl(String url) {
+	protected String getCodeFromUrl(String url) {
 		if (!TextUtils.isEmpty(url)) {
 			return url.substring(url.indexOf("code=") + "code=".length());
 		}
@@ -87,7 +88,8 @@ public abstract class Platform implements PlatformConstants {
 
 	protected abstract AccessToken parseToken(JsonObject jsonObject);
 
-	public void getAccessTokenWithCode(String code, OauthResultListener listener) {
+	protected void getAccessTokenWithCode(String code,
+			OauthResultListener listener) {
 		if (TextUtils.isEmpty(code) || listener == null) {
 			return;
 		}
@@ -146,6 +148,9 @@ public abstract class Platform implements PlatformConstants {
 			appInfo = context.getPackageManager().getApplicationInfo(
 					context.getPackageName(), PackageManager.GET_META_DATA);
 			result = appInfo.metaData.getString("oauthActivity");
+			if (TextUtils.isEmpty(result)) {
+				result = OauthActivity.class.getName();
+			}
 		} catch (NameNotFoundException e) {
 		}
 		return result;
@@ -363,8 +368,10 @@ public abstract class Platform implements PlatformConstants {
 				info.appid = attributes.get(APPID);
 				info.appsecret = attributes.get(APPSECRET);
 				info.scope = attributes.get(SCOPE);
-				info.showpriority = Integer.parseInt(attributes
-						.get(SHOWPRIORITY));
+				String priority = attributes.get(SHOWPRIORITY);
+				if (!TextUtils.isEmpty(priority)) {
+					info.showpriority = Integer.parseInt(priority);
+				}
 				isInit = true;
 			} else {
 				LogUtil.e("the platform:%s is not exit", info.platformid);

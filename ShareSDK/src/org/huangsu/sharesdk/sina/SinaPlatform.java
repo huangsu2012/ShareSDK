@@ -16,7 +16,7 @@ import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
-import org.huangsu.sharesdk.util.JsonUtil;
+import org.huangsu.sharesdk.util.GsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
 
@@ -245,19 +245,19 @@ public class SinaPlatform extends Platform {
 
 	@Override
 	protected AccessToken parseToken(JsonObject jsonObject) {
-		String accessToken = JsonUtil.getAttribute(String.class, jsonObject,
+		String accessToken = GsonUtil.getAttribute(String.class, jsonObject,
 				"access_token");
 		if (accessToken != null) {
-			Long expires_in = JsonUtil.getAttribute(Long.class, jsonObject,
+			Long expires_in = GsonUtil.getAttribute(Long.class, jsonObject,
 					"expires_in") * 1000 + System.currentTimeMillis();
-			String uid = JsonUtil.getAttribute(String.class, jsonObject, "uid");
+			String uid = GsonUtil.getAttribute(String.class, jsonObject, "uid");
 			return new AccessToken(accessToken, uid, expires_in);
 		}
 		return null;
 	}
 
 	@Override
-	public Map<String, String> getCodeReqParams() {
+	protected Map<String, String> getCodeReqParams() {
 		initInfo();
 		if (checkCofigIntegrity()) {
 			Map<String, String> authParams = new HashMap<String, String>();
@@ -319,13 +319,13 @@ public class SinaPlatform extends Platform {
 	}
 
 	private boolean isJsonResultRight(JsonObject jsonObject) {
-		String error = JsonUtil.getAttribute(String.class, jsonObject, "error");
+		String error = GsonUtil.getAttribute(String.class, jsonObject, "error");
 		return TextUtils.isEmpty(error);
 	}
 
 	@Override
 	protected String getErrorMsg(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(String.class, jsonObject, "error");
+		return GsonUtil.getAttribute(String.class, jsonObject, "error");
 	}
 
 	@Override
@@ -340,10 +340,10 @@ public class SinaPlatform extends Platform {
 
 	@Override
 	protected BasicUserInfo parseBasicUserInfo(JsonObject jsonObject) {
-		String uid = JsonUtil.getAttribute(String.class, jsonObject, "id");
+		String uid = GsonUtil.getAttribute(String.class, jsonObject, "id");
 		if (!TextUtils.isEmpty(uid)) {
 			int gender = 0;
-			String genderTemp = JsonUtil.getAttribute(String.class, jsonObject,
+			String genderTemp = GsonUtil.getAttribute(String.class, jsonObject,
 					"gender");
 			if ("m".equals(genderTemp)) {
 				gender = 0;
@@ -355,13 +355,13 @@ public class SinaPlatform extends Platform {
 			/**
 			 * 大头像地址
 			 */
-			String avatar = JsonUtil.getAttribute(String.class, jsonObject,
+			String avatar = GsonUtil.getAttribute(String.class, jsonObject,
 					"avatar_large");
 			if (TextUtils.isEmpty(avatar)) {
-				avatar = JsonUtil.getAttribute(String.class, jsonObject,
+				avatar = GsonUtil.getAttribute(String.class, jsonObject,
 						"profile_image_url");
 			}
-			String name = JsonUtil.getAttribute(String.class, jsonObject,
+			String name = GsonUtil.getAttribute(String.class, jsonObject,
 					"screen_name");
 			return new BasicUserInfo(uid, gender, avatar, name);
 		}

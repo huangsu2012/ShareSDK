@@ -8,7 +8,7 @@ import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.OauthResultListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.util.JsonUtil;
+import org.huangsu.sharesdk.util.GsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,16 +56,16 @@ public abstract class TencentBase extends Platform {
 
 	@Override
 	protected AccessToken parseToken(JsonObject jsonObject) {
-		Integer resultCode = JsonUtil.getAttribute(Integer.class, jsonObject,
+		Integer resultCode = GsonUtil.getAttribute(Integer.class, jsonObject,
 				"ret");
 		LogUtil.d("the ret code:%s", resultCode);
 		if (resultCode != null && resultCode == 0) {
-			String access_token = JsonUtil.getAttribute(String.class,
+			String access_token = GsonUtil.getAttribute(String.class,
 					jsonObject, "access_token");
 			if (access_token != null) {
-				long expiresin = JsonUtil.getAttribute(long.class, jsonObject,
+				long expiresin = GsonUtil.getAttribute(long.class, jsonObject,
 						"expires_in") * 1000 + System.currentTimeMillis();
-				String openid = JsonUtil.getAttribute(String.class, jsonObject,
+				String openid = GsonUtil.getAttribute(String.class, jsonObject,
 						"openid");
 				return new AccessToken(access_token, openid, expiresin);
 			}
@@ -73,7 +73,7 @@ public abstract class TencentBase extends Platform {
 		return null;
 	}
 
-	public boolean isSupportSSOLogin() {
+	protected boolean isSupportSSOLogin() {
 		String str = SystemUtils.getAppVersionName(context,
 				"com.tencent.mobileqq");
 		if (str == null) {
@@ -171,7 +171,7 @@ public abstract class TencentBase extends Platform {
 
 	@Override
 	protected boolean isShareSuccess(JsonObject jsonObject) {
-		Integer retCode = JsonUtil.getAttribute(Integer.class, jsonObject,
+		Integer retCode = GsonUtil.getAttribute(Integer.class, jsonObject,
 				"ret");
 		return retCode != null && retCode == 0;
 	}
@@ -195,8 +195,7 @@ public abstract class TencentBase extends Platform {
 		public void onComplete(Object obj) {
 			LogUtil.d("onComplete:%s", obj.toString());
 			if (listener != null) {
-				JsonObject jsonObject = JsonUtil.getJsonObjectFromJsonStr(obj
-						.toString());
+				JsonObject jsonObject = GsonUtil.getJsonObject(obj.toString());
 				if (isShareSuccess(jsonObject)) {
 					listener.onSuccess();
 				} else {

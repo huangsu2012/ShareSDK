@@ -16,7 +16,7 @@ import org.huangsu.sharesdk.core.NetworkClient;
 import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
-import org.huangsu.sharesdk.util.JsonUtil;
+import org.huangsu.sharesdk.util.GsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
 
@@ -26,8 +26,9 @@ import android.text.TextUtils;
 import com.google.gson.JsonObject;
 
 public class DoubanPlatform extends Platform {
-	protected DoubanPlatform(Context context, NetworkClient client,DataManager dataManager) {
-		super(context, client,dataManager);
+	protected DoubanPlatform(Context context, NetworkClient client,
+			DataManager dataManager) {
+		super(context, client, dataManager);
 	}
 
 	private Map<String, String> headers;
@@ -48,7 +49,7 @@ public class DoubanPlatform extends Platform {
 	}
 
 	@Override
-	public Map<String, String> getCodeReqParams() {
+	protected Map<String, String> getCodeReqParams() {
 		initInfo();
 		if (checkCofigIntegrity()) {
 			Map<String, String> authParams = new HashMap<String, String>();
@@ -86,14 +87,14 @@ public class DoubanPlatform extends Platform {
 
 	@Override
 	protected AccessToken parseToken(JsonObject jsonObject) {
-		String access_token = JsonUtil.getAttribute(String.class, jsonObject,
+		String access_token = GsonUtil.getAttribute(String.class, jsonObject,
 				"access_token");
 		if (access_token != null) {
-			Long expires_in = JsonUtil.getAttribute(Long.class, jsonObject,
+			Long expires_in = GsonUtil.getAttribute(Long.class, jsonObject,
 					"expires_in") * 1000 + System.currentTimeMillis();
-			String douban_user_id = JsonUtil.getAttribute(String.class,
+			String douban_user_id = GsonUtil.getAttribute(String.class,
 					jsonObject, "douban_user_id");
-			String refreshToken = JsonUtil.getAttribute(String.class,
+			String refreshToken = GsonUtil.getAttribute(String.class,
 					jsonObject, "refresh_token");
 			return new AccessToken(access_token, douban_user_id, expires_in,
 					refreshToken);
@@ -135,8 +136,9 @@ public class DoubanPlatform extends Platform {
 				});
 				return;
 			}
+		} else {
+			oauth(activity, transaction);
 		}
-		oauth(activity, transaction);
 	}
 
 	@Override
@@ -193,7 +195,7 @@ public class DoubanPlatform extends Platform {
 
 	}
 
-	public Map<String,String> getHeaders(String accessToken) {
+	public Map<String, String> getHeaders(String accessToken) {
 		if (headers == null) {
 			headers = new HashMap<String, String>();
 			headers.put("Accept",
@@ -207,12 +209,12 @@ public class DoubanPlatform extends Platform {
 
 	@Override
 	protected boolean isShareSuccess(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(int.class, jsonObject, "code") == null;
+		return GsonUtil.getAttribute(int.class, jsonObject, "code") == null;
 	}
 
 	@Override
 	protected String getErrorMsg(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(String.class, jsonObject, "msg");
+		return GsonUtil.getAttribute(String.class, jsonObject, "msg");
 	}
 
 	@Override
@@ -221,16 +223,16 @@ public class DoubanPlatform extends Platform {
 		String url = DoubanConstants.BASEUSERINFO + ":" + uid;
 		String token = accessToken.token;
 		getHeaders(token);
-		client.get(url, headers,null, listener);
+		client.get(url, headers, null, listener);
 	}
 
 	@Override
 	protected BasicUserInfo parseBasicUserInfo(JsonObject jsonObject) {
-		String uid = JsonUtil.getAttribute(String.class, jsonObject, "id");
+		String uid = GsonUtil.getAttribute(String.class, jsonObject, "id");
 		if (!TextUtils.isEmpty(uid)) {
-			String name = JsonUtil.getAttribute(String.class, jsonObject,
+			String name = GsonUtil.getAttribute(String.class, jsonObject,
 					"name");
-			String avatar = JsonUtil.getAttribute(String.class, jsonObject,
+			String avatar = GsonUtil.getAttribute(String.class, jsonObject,
 					"avatar");
 			return new BasicUserInfo(uid, 2, avatar, name);
 		}

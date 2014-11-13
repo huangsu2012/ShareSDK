@@ -13,7 +13,7 @@ import org.huangsu.sharesdk.core.Platform;
 import org.huangsu.sharesdk.core.ProxyActivity;
 import org.huangsu.sharesdk.listener.ResponseListener;
 import org.huangsu.sharesdk.listener.ShareResultListener;
-import org.huangsu.sharesdk.util.JsonUtil;
+import org.huangsu.sharesdk.util.GsonUtil;
 import org.huangsu.sharesdk.util.LogUtil;
 import org.huangsu.sharesdk.util.StringUtil;
 
@@ -24,8 +24,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class RenRenPlatform extends Platform {
-	protected RenRenPlatform(Context context, NetworkClient client,DataManager dataManager) {
-		super(context, client,dataManager);
+	protected RenRenPlatform(Context context, NetworkClient client,
+			DataManager dataManager) {
+		super(context, client, dataManager);
 	}
 
 	private Map<String, String> headers;
@@ -46,7 +47,7 @@ public class RenRenPlatform extends Platform {
 	}
 
 	@Override
-	public Map<String, String> getCodeReqParams() {
+	protected Map<String, String> getCodeReqParams() {
 		initInfo();
 		if (checkCofigIntegrity()) {
 			Map<String, String> authParams = new HashMap<String, String>();
@@ -85,16 +86,16 @@ public class RenRenPlatform extends Platform {
 
 	@Override
 	protected AccessToken parseToken(JsonObject jsonObject) {
-		String accessToken = JsonUtil.getAttribute(String.class, jsonObject,
+		String accessToken = GsonUtil.getAttribute(String.class, jsonObject,
 				"access_token");
 		if (accessToken != null) {
-			Long expires_in = JsonUtil.getAttribute(Long.class, jsonObject,
+			Long expires_in = GsonUtil.getAttribute(Long.class, jsonObject,
 					"expires_in") * 1000 + System.currentTimeMillis();
-			JsonObject userObject = JsonUtil.getAttribute(JsonObject.class,
+			JsonObject userObject = GsonUtil.getAttribute(JsonObject.class,
 					jsonObject, "user");
-			String userid = JsonUtil.getAttribute(String.class, userObject,
+			String userid = GsonUtil.getAttribute(String.class, userObject,
 					"id");
-			String refreshToken = JsonUtil.getAttribute(String.class,
+			String refreshToken = GsonUtil.getAttribute(String.class,
 					jsonObject, "refresh_token");
 			saveBasicUserInfo(parseBasicUserInfo(userObject));
 			return new AccessToken(accessToken, userid, expires_in,
@@ -167,7 +168,7 @@ public class RenRenPlatform extends Platform {
 		// }
 	}
 
-	private void getHeaders(String accessToken) {
+	public Map<String, String> getHeaders(String accessToken) {
 		if (headers == null) {
 			headers = new HashMap<String, String>();
 			headers.put("Accept",
@@ -176,6 +177,7 @@ public class RenRenPlatform extends Platform {
 			headers.put("Connection", "keep-alive");
 		}
 		headers.put("Authorization", "Bearer " + accessToken);
+		return headers;
 	}
 
 	@Override
@@ -210,13 +212,13 @@ public class RenRenPlatform extends Platform {
 
 	@Override
 	protected boolean isShareSuccess(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(JsonObject.class, jsonObject, "error") == null;
+		return GsonUtil.getAttribute(JsonObject.class, jsonObject, "error") == null;
 	}
 
 	@Override
 	protected String getErrorMsg(JsonObject jsonObject) {
-		return JsonUtil.getAttribute(String.class,
-				JsonUtil.getAttribute(JsonObject.class, jsonObject, "error"),
+		return GsonUtil.getAttribute(String.class,
+				GsonUtil.getAttribute(JsonObject.class, jsonObject, "error"),
 				"message");
 	}
 
@@ -232,18 +234,18 @@ public class RenRenPlatform extends Platform {
 
 	@Override
 	protected BasicUserInfo parseBasicUserInfo(JsonObject jsonObject) {
-		String uid = JsonUtil.getAttribute(String.class, jsonObject, "id");
+		String uid = GsonUtil.getAttribute(String.class, jsonObject, "id");
 		if (!TextUtils.isEmpty(uid)) {
-			String name = JsonUtil.getAttribute(String.class, jsonObject,
+			String name = GsonUtil.getAttribute(String.class, jsonObject,
 					"name");
-			JsonArray avatars = JsonUtil.getAttribute(JsonArray.class,
+			JsonArray avatars = GsonUtil.getAttribute(JsonArray.class,
 					jsonObject, "avatar");
 			String avatar = null;
 			if (avatars != null && avatars.size() > 0) {
-				avatar = JsonUtil.getAttribute(String.class, avatars.get(0)
+				avatar = GsonUtil.getAttribute(String.class, avatars.get(0)
 						.getAsJsonObject(), "url");
 			}
-			String sex = JsonUtil.getAttribute(String.class, JsonUtil
+			String sex = GsonUtil.getAttribute(String.class, GsonUtil
 					.getAttribute(JsonObject.class, jsonObject,
 							"basicInformation"), "sex");
 			int gender = 0;

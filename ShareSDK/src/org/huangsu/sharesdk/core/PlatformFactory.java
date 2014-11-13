@@ -1,7 +1,13 @@
 package org.huangsu.sharesdk.core;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,16 +38,17 @@ public class PlatformFactory implements PlatformConstants {
 	private DataManager dataManager;
 	private Map<String, Platform> platforms;
 	private Map<String, Class<? extends Platform>> platformClasses;
+	private List<String> sortedPlatformIds;
 	private boolean inited = false;
 
 	private PlatformFactory(Context context) {
 		this.context = context.getApplicationContext();
-		platforms = new ConcurrentHashMap<String, Platform>();
+		platforms = new ConcurrentHashMap<String, Platform>(8);
 		initPlatformClasses();
 	}
 
 	private void initPlatformClasses() {
-		platformClasses = new HashMap<String, Class<? extends Platform>>();
+		platformClasses = new HashMap<String, Class<? extends Platform>>(8);
 		platformClasses.put(QQ, QQPlatform.class);
 		platformClasses.put(QZONE, QzonePlatform.class);
 		platformClasses.put(WECHAT, WechatPlatform.class);
@@ -50,6 +57,28 @@ public class PlatformFactory implements PlatformConstants {
 		platformClasses.put(TENCENTWEIBO, TencentWeiboPlatform.class);
 		platformClasses.put(RENREN, RenRenPlatform.class);
 		platformClasses.put(DOUBAN, DoubanPlatform.class);
+	}
+
+	public List<String> getSortedPlatformIds() {
+		if (sortedPlatformIds == null) {
+			sortedPlatformIds = new ArrayList<String>(platformClasses.size());
+			Iterator<String> iterator = platformClasses.keySet().iterator();
+			while (iterator.hasNext()) {
+				String string = (String) iterator.next();
+				Platform platform = getPlatform(string);
+				platform.initInfo();
+				sortedPlatformIds.add(string);
+			}
+			Collections.sort(sortedPlatformIds, new Comparator<String>() {
+				@Override
+				public int compare(String lhs, String rhs) {
+					Platform l = getPlatform(lhs);
+					Platform r = getPlatform(rhs);
+					return l.getInfo().compareTo(r.getInfo());
+				}
+			});
+		}
+		return sortedPlatformIds;
 	}
 
 	public static synchronized PlatformFactory getInstance(Context context) {
@@ -64,7 +93,7 @@ public class PlatformFactory implements PlatformConstants {
 
 	/**
 	 * You should invoke this function when you want supply your own
-	 * implementation of<a>NetworkClient<a> and <a>DataManager<a>
+	 * implementation of{@code NetworkClient} and {@code DataManager}
 	 * 
 	 * @param client
 	 * @param dataManager
@@ -97,9 +126,12 @@ public class PlatformFactory implements PlatformConstants {
 			Class<? extends Platform> clazz = platformClasses.get(platformid);
 			if (clazz != null) {
 				try {
-					platform = clazz.getConstructor(Context.class,
-							NetworkClient.class, DataManager.class)
-							.newInstance(context, client, dataManager);
+					Constructor<? extends Platform> constructor = clazz
+							.getDeclaredConstructor(Context.class,
+									NetworkClient.class, DataManager.class);
+					constructor.setAccessible(true);
+					platform = constructor.newInstance(context, client,
+							dataManager);
 				} catch (InstantiationException e) {
 					LogUtil.e(e, "");
 				} catch (IllegalAccessException e) {
@@ -111,9 +143,13 @@ public class PlatformFactory implements PlatformConstants {
 				} catch (NoSuchMethodException e) {
 					LogUtil.e(e, "");
 				}
+			} else {
+				LogUtil.d("the platform(%s) is not exit", platformid);
 			}
 			if (platform != null) {
 				platforms.put(platformid, platform);
+			} else {
+				LogUtil.d("the platform(%s) is not exit", platformid);
 			}
 		}
 		return platform;
@@ -138,11 +174,15 @@ public class PlatformFactory implements PlatformConstants {
 		if (platforms != null) {
 			platforms.clear();
 		}
+		if (sortedPlatformIds != null) {
+			sortedPlatformIds.clear();
+		}
 		platformFactory = null;
 		client = null;
 		platformClasses = null;
 		platforms = null;
 		context = null;
 		dataManager = null;
+		sortedPlatformIds = null;
 	}
 }
